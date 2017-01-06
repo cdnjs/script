@@ -71,6 +71,10 @@ function autoadd() {
         print-log "Found ${lib}"
         oldVer="$(git diff "${lib}/package.json" | command grep '^\-  "version"' | awk -F'"' '{print $4}')"
         newVer="$(git diff "${lib}/package.json" | command grep '^\+  "version"' | awk -F'"' '{print $4}')"
+        if ! git status "${lib}/$newVer" | grep -q "${lib}/$newVer/"; then
+            print-log "${lib} ${newVer} invalid!"
+            continue
+        fi
         diffCount="$(git diff "${lib}/package.json" | command grep -v '^\-\-\-' | command grep -c '^\- ')"
         if [ "${diffCount}" -eq 1 ] && [ ! -z "${oldVer}" ] && [ ! -z "${newVer}" ]; then
             print-log "found ver ${oldVer} -> ${newVer}"
