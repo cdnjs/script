@@ -180,7 +180,7 @@ function cdnjs-add() {
     if [ "${2}" = "old" ]; then
         run git add "${1}"
         run git reset "${1}/package.json"
-        run git commit -m "add old versions of ${1}"
+        run git commit -m "Add old versions of ${1}"
     else
         run git add "${1}/package.json"
         cdnjs-add-no-package-json "${1}" "${2}"
