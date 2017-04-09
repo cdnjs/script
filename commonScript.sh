@@ -39,11 +39,12 @@ function check() {
         (
             cd "${1}/${oldVer}"
             find . | sort | command grep -v '.bot_cant_auto_add\|\.map$\|\.ts$\|\.md$' > "${tempD}/${1}_${oldVer}_fileList"
-        )
+        ) &
         (
             cd "${1}/${newVer}"
             find . | sort | command grep -v '.bot_cant_auto_add\|\.map$\|\.ts$\|\.md$' > "${tempD}/${1}_${newVer}_fileList"
-        )
+        ) &
+        wait
         diff "${tempD}/${1}_${oldVer}_fileList" "${tempD}/${1}_${newVer}_fileList"
         ls "${1}/"
         echo -n "Wanna add ${1}? (old: ${oldVer}, new: ${newVer}) "
@@ -87,12 +88,13 @@ function autoadd() {
             (
                 cd "${HOME}/repos/cdnjs/cdnjs/ajax/libs/${lib}/${oldVer}"
                 find . | sort | command grep -v '.bot_cant_auto_add\|\.map$\|\.ts$\|\.md$' > "${tempD}/${lib}_${oldVer}_fileList"
-            )
+            ) &
             (
                 cd "${HOME}/repos/cdnjs/cdnjs/ajax/libs/${lib}/${newVer}"
                 find . -type f -exec chmod -x {} \;
                 find . | sort | command grep -v '.bot_cant_auto_add\|\.map$\|\.ts$\|\.md$' > "${tempD}/${lib}_${newVer}_fileList"
-            )
+            ) &
+            wait
             if [ ! -e "${lib}/.donotoptimizepng" ] && test "$(find "${lib}/${newVer}" -name "*.png")" ; then
                 find "${lib}/${newVer}" -name "*.png" | xargs -n 1 -P 7 zopflipng-f
             fi
@@ -122,7 +124,7 @@ function autoadd() {
         fi
     done
     reset
-    for lib in $(git status ./ | command grep '\/$' | awk -F '/' '{ print $1 }' | uniq | command grep -v 'oojs-ui\|punycode')
+    for lib in $(git status ./ | command grep '\/$' | awk -F '/' '{ print $1 }' | uniq | command grep -v 'aframe')
     do
         print-log "Found ${lib}"
         test "$(grep '"version": ' "${lib}/package.json")" || return 1
@@ -139,13 +141,13 @@ function autoadd() {
             (
                 cd "${HOME}/repos/cdnjs/cdnjs/ajax/libs/${lib}/${oldVer}"
                 find . | sort | command grep -v '.bot_cant_auto_add\|\.map$\|\.ts$\|\.md$' > "${tempD}/${lib}_${oldVer}_fileList"
-            )
+            ) &
             (
                 cd "${HOME}/repos/cdnjs/cdnjs/ajax/libs/${lib}/${newVer}"
                 find . -type f -exec chmod -x {} \;
                 find . | sort | command grep -v '.bot_cant_auto_add\|\.map$\|\.ts$\|\.md$' > "${tempD}/${lib}_${newVer}_fileList"
-            )
-
+            ) &
+            wait
             if [ ! -e "${lib}/.donotoptimizepng" ] && test "$(find "${lib}/${newVer}" -name "*.png")" ; then
                 find "${lib}/${newVer}" -name "*.png" | xargs -n 1 -P 7 zopflipng-f
             fi
