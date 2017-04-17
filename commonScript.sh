@@ -10,7 +10,7 @@ function run() {
 }
 
 function reset() {
-    if git diff --exit-code > /dev/null; then
+    if git diff --quiet; then
         print-log "no diff found, so do not reset!"
     else
         print-log "diff found, so reset!"
