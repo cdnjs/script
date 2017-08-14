@@ -96,10 +96,10 @@ function autoadd() {
             ) &
             wait
             if [ ! -e "${lib}/.donotoptimizepng" ] && test "$(find "${lib}/${newVer}" -name "*.png")" ; then
-                find "${lib}/${newVer}" -name "*.png" | xargs -n 1 -P 7 zopflipng-f
+                find "${lib}/${newVer}" -name "*.png" | xargs -n 1 -P $(($(nproc) - 1)) zopflipng-f
             fi
             if test "$(find "${lib}/${newVer}" -name "*.jpeg" -o -name "*.jpg")" ; then
-                find "${lib}/${newVer}" -name "*.jpeg" -o -name "*.jpg" | xargs -n 1 -P 7 jpegoptim
+                find "${lib}/${newVer}" -name "*.jpeg" -o -name "*.jpg" | xargs -n 1 -P $(($(nproc) - 1)) jpegoptim
             fi
             oldmd5="$(md5sum "${tempD}/${lib}_${oldVer}_fileList" | cut -d ' ' -f 1)"
             newmd5="$(md5sum "${tempD}/${lib}_${newVer}_fileList" | cut -d ' ' -f 1)"
@@ -149,10 +149,10 @@ function autoadd() {
             ) &
             wait
             if [ ! -e "${lib}/.donotoptimizepng" ] && test "$(find "${lib}/${newVer}" -name "*.png")" ; then
-                find "${lib}/${newVer}" -name "*.png" | xargs -n 1 -P 7 zopflipng-f
+                find "${lib}/${newVer}" -name "*.png" | xargs -n 1 -P $(($(nproc) - 1)) zopflipng-f
             fi
             if test "$(find "${lib}/${newVer}" -name "*.jpeg" -o -name "*.jpg")" ; then
-                find "${lib}/${newVer}" -name "*.jpeg" -o -name "*.jpg" | xargs -n 1 -P 7 jpegoptim
+                find "${lib}/${newVer}" -name "*.jpeg" -o -name "*.jpg" | xargs -n 1 -P $(($(nproc) - 1)) jpegoptim
             fi
             oldmd5="$(md5sum "${tempD}/${lib}_${oldVer}_fileList" | cut -d ' ' -f 1)"
             newmd5="$(md5sum "${tempD}/${lib}_${newVer}_fileList" | cut -d ' ' -f 1)"
