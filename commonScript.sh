@@ -19,7 +19,7 @@ function reset() {
 }
 
 function fix() {
-    find "${1}" -type d -exec chmod 755 {} \; || sudo chown peter:peter -R "${1}"
+    find "${1}" -type d -exec chmod 755 {} \; || sudo chown "${USER}:${USER}" -R "${1}"
     find "${1}" -type f -exec chmod 644 {} \;
 }
 
@@ -67,7 +67,7 @@ function check() {
 function autoadd() {
     print-log "start to auto add process"
     cd "${HOME}/repos/cdnjs/cdnjs/ajax/libs/"
-    for lib in $(git status ./ -uno | command grep -v '\.\.' | command grep --color=never package.json | awk '{print $2}' | awk -F'/' '{print $1}')
+    for lib in $(git status ./ -uno | command grep -v '\.\.' | command grep package.json | awk '{print $2}' | awk -F'/' '{print $1}')
     do
         print-log "Found ${lib}"
         oldVer="$(git diff "${lib}/package.json" | command grep '^\-  "version"' | awk -F'"' '{print $4}')"
