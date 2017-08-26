@@ -180,19 +180,19 @@ function autoadd() {
 
 function cdnjs-add() {
     if [ "${2}" = "old" ]; then
-        run git add "${1}"
-        run git reset "${1}/package.json"
+        run git add -- "${1}"
+        run git reset -- "${1}/package.json"
         run git commit -m "Add old versions of ${1}"
     else
         local currentVer="$(awk '{ if ("\"version\":" == $1) print $2}' "${1}/package.json"  | awk -F '"' '{print $2}')"
         if [ "${currentVer}" = "${2}" ]; then
-            run git add "${1}/package.json"
+            run git add -- "${1}/package.json"
         fi
         cdnjs-add-no-package-json "${1}" "${2}"
     fi
 }
 
 function cdnjs-add-no-package-json() {
-    run git add "${1}/${2}"
+    run git add -- "${1}/${2}"
     run git commit -m "Add ${1} v${2}"
 }
