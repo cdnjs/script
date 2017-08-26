@@ -182,7 +182,7 @@ function cdnjs-add() {
     if [ "${2}" = "old" ]; then
         run git add -- "${1}"
         run git reset -- "${1}/package.json"
-        run git commit -m "Add old versions of ${1}"
+        run git commit -m "Add ${1} old versions"
     else
         local currentVer="$(awk '{ if ("\"version\":" == $1) print $2}' "${1}/package.json"  | awk -F '"' '{print $2}')"
         if [ "${currentVer}" = "${2}" ]; then
