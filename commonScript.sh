@@ -117,8 +117,27 @@ function autoadd() {
                     rsync -av "${tempD}/${lib}_${newVer}_x/" "${lib}/${newVer}/"
                     cdnjs-add "${lib}" "${newVer}"
                 else
-                    print-log "${lib} ${newVer} can not be automatically added"
-                    touch "${lib}/${newVer}/.bot_cant_auto_add"
+                    oldoldVer="$(git ls-files -- "./${lib}" | awk -F '/' '/[0-9]/ {print $2}' | uniq | grep "^$(echo $newVer | head -c 1)" | tail -n 1)"
+                    if [ "$oldoldVer" = "" ]; then
+                        print-log "${lib} ${newVer} can not be automatically added"
+                        touch "${lib}/${newVer}/.bot_cant_auto_add"
+                        continue
+                    fi
+                    (
+                        cd "${HOME}/repos/cdnjs/cdnjs/ajax/libs/${lib}/${oldoldVer}"
+                        find . | sort | command grep -v '.bot_cant_auto_add\|\.map$\|\.ts$\|\.md$' > "${tempD}/${lib}_${oldoldVer}_fileList"
+                    )
+                    oldoldmd5="$(md5sum "${tempD}/${lib}_${oldoldVer}_fileList" | cut -d ' ' -f 1)"
+                    filename="$(grep '"filename": "' "${lib}/package.json"  | awk -F'"' '{print $4}')"
+                    if [ -e "${lib}/${newVer}/${filename}" ] && [ "${oldoldmd5}" = "${newmd5}" ]; then
+                        cdnjs-add "${lib}" "${newVer}"
+                    elif [ -e "${lib}/${newVer}/${filename}" ] && [ "${oldoldmd5}" = "${tmpmd5}" ]; then
+                        rsync -av "${tempD}/${lib}_${newVer}_x/" "${lib}/${newVer}/"
+                        cdnjs-add "${lib}" "${newVer}"
+                    else
+                        print-log "${lib} ${newVer} can not be automatically added"
+                        touch "${lib}/${newVer}/.bot_cant_auto_add"
+                    fi
                 fi
             fi
         fi
@@ -170,8 +189,26 @@ function autoadd() {
                     rsync -av "${tempD}/${lib}_${newVer}_x/" "${lib}/${newVer}/"
                     cdnjs-add-no-package-json "${lib}" "${newVer}"
                 else
-                    print-log "${lib} ${newVer} can not be automatically added"
-                    touch "${lib}/${newVer}/.bot_cant_auto_add"
+                    oldoldVer="$(git ls-files -- "./${lib}" | awk -F '/' '/[0-9]/ {print $2}' | uniq | grep "^$(echo $newVer | head -c 1)" | tail -n 1)"
+                    if [ "$oldoldVer" = "" ]; then
+                        print-log "${lib} ${newVer} can not be automatically added"
+                        touch "${lib}/${newVer}/.bot_cant_auto_add"
+                        continue
+                    fi
+                    (
+                        cd "${HOME}/repos/cdnjs/cdnjs/ajax/libs/${lib}/${oldoldVer}"
+                        find . | sort | command grep -v '.bot_cant_auto_add\|\.map$\|\.ts$\|\.md$' > "${tempD}/${lib}_${oldoldVer}_fileList"
+                    )
+                    oldoldmd5="$(md5sum "${tempD}/${lib}_${oldoldVer}_fileList" | cut -d ' ' -f 1)"
+                    if [ "${oldoldmd5}" = "${newmd5}" ]; then
+                        cdnjs-add "${lib}" "${newVer}"
+                    elif [ "${oldoldmd5}" = "${tmpmd5}" ]; then
+                        rsync -av "${tempD}/${lib}_${newVer}_x/" "${lib}/${newVer}/"
+                        cdnjs-add "${lib}" "${newVer}"
+                    else
+                        print-log "${lib} ${newVer} can not be automatically added"
+                        touch "${lib}/${newVer}/.bot_cant_auto_add"
+                    fi
                 fi
             fi
         done
