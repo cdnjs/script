@@ -117,7 +117,7 @@ function autoadd() {
                     rsync -av "${tempD}/${lib}_${newVer}_x/" "${lib}/${newVer}/"
                     cdnjs-add "${lib}" "${newVer}"
                 else
-                    oldoldVer="$(git ls-files -- "./${lib}" | awk -F '/' '/[0-9]/ {print $2}' | uniq | grep "^$(echo $newVer | head -c 1)" | tail -n 1)"
+                    oldoldVer="$(git ls-files -- "./${lib}" | awk -F '/' '/[0-9]/ {print $2}' | uniq | sort -V | grep "^$(echo $newVer | head -c 1)" | tail -n 1)"
                     if [ "$oldoldVer" = "" ]; then
                         print-log "${lib} ${newVer} can not be automatically added"
                         touch "${lib}/${newVer}/.bot_cant_auto_add"
@@ -189,7 +189,7 @@ function autoadd() {
                     rsync -av "${tempD}/${lib}_${newVer}_x/" "${lib}/${newVer}/"
                     cdnjs-add-no-package-json "${lib}" "${newVer}"
                 else
-                    oldoldVer="$(git ls-files -- "./${lib}" | awk -F '/' '/[0-9]/ {print $2}' | uniq | grep "^$(echo $newVer | head -c 1)" | tail -n 1)"
+                    oldoldVer="$(git ls-files -- "./${lib}" | awk -F '/' '/[0-9]/ {print $2}' | uniq | sort -V | grep "^$(echo $newVer | head -c 1)" | tail -n 1)"
                     if [ "$oldoldVer" = "" ]; then
                         print-log "${lib} ${newVer} can not be automatically added"
                         touch "${lib}/${newVer}/.bot_cant_auto_add"
