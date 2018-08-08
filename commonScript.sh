@@ -119,6 +119,7 @@ function autoadd() {
           oldoldVer="$(git ls-files -- "./${lib}" | awk -F '/' '/[0-9]/ {print $2}' | uniq | sort -V | grep "^$(echo "${newVer}" | head -c 1)" | tail -n 1)"
           if [ "$oldoldVer" = "" ]; then
             print-log "${lib} ${newVer} can not be automatically added"
+            echo -e '\a'
             touch "${lib}/${newVer}/.bot_cant_auto_add"
             continue
           fi
@@ -135,6 +136,7 @@ function autoadd() {
             cdnjs-add "${lib}" "${newVer}"
           else
             print-log "${lib} ${newVer} can not be automatically added"
+            echo -e '\a'
             touch "${lib}/${newVer}/.bot_cant_auto_add"
           fi
         fi
