@@ -1,0 +1,21 @@
+---
+
+language: node_js
+
+node_js:
+  - "10"
+
+git:
+  depth: 10
+  submodules:
+    false
+
+jobs:
+  include:
+    - stage: Static Test
+      env:
+        - test: Editor Config check
+      install:
+        - npm i -g eclint
+      script:
+        - eclint check
