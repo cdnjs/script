@@ -1,5 +1,14 @@
 #!/usr/bin/env bash
 
+if [ -z "$BOT_CDNJS_CHECK_DIR" ]; then
+  echo "BOT_CDNJS_CHECK_DIR missing"
+  exit 1
+fi
+if [ -z "$BOT_BASE_PATH" ]; then
+  echo "BOT_BASE_PATH missing"
+  exit 1
+fi
+
 function print-log() {
   echo "$@"
 }
@@ -33,8 +42,8 @@ function check() {
   elif [ -z "${oldVer}" ] || [ -z "${newVer}" ]; then
     echo "Version diff not found"
   else
-    rm -rf /run/shm/cdnjsCheck/*
-    tempD="/run/shm/cdnjsCheck/$(date --iso-8601)"
+    rm -rf "$BOT_CDNJS_CHECK_DIR*"
+    tempD="$BOT_CDNJS_CHECK_DIR$(date --iso-8601)"
     mkdir -p "${tempD}"
     (
       cd "${1}/${oldVer}"
@@ -66,7 +75,7 @@ function check() {
 
 function autoadd() {
   print-log "start to auto add process"
-  cd "${HOME}/repos/cdnjs/cdnjs/ajax/libs/"
+  cd "$BOT_BASE_PATH/cdnjs/ajax/libs/"
   for lib in $(git status ./ -uno | command grep -v '\.\.' | command grep package.json | awk '{print $2}' | awk -F'/' '{print $1}'); do
     print-log "Found ${lib}"
     oldVer="$(git diff "${lib}/package.json" | command grep '^\-  "version"' | awk -F'"' '{print $4}')"
@@ -82,14 +91,14 @@ function autoadd() {
         echo "Found ${lib}/${newVer}/.bot_cant_auto_add, pass ..."
         continue
       fi
-      tempD="/run/shm/cdnjsCheck/$(date --iso-8601)"
+      tempD="$BOT_CDNJS_CHECK_DIR$(date --iso-8601)"
       mkdir -p "${tempD}"
       (
-        cd "${HOME}/repos/cdnjs/cdnjs/ajax/libs/${lib}/${oldVer}"
+        cd "$BOT_BASE_PATH/cdnjs/ajax/libs/${lib}/${oldVer}"
         find . | sort | command grep -v '.bot_cant_auto_add\|\.map$\|\.ts$\|\.md$' > "${tempD}/${lib}_${oldVer}_fileList"
       ) &
       (
-        cd "${HOME}/repos/cdnjs/cdnjs/ajax/libs/${lib}/${newVer}"
+        cd "$BOT_BASE_PATH/cdnjs/ajax/libs/${lib}/${newVer}"
         find . -type f -exec chmod -x {} \;
         find . | sort | command grep -v '.bot_cant_auto_add\|\.map$\|\.ts$\|\.md$' > "${tempD}/${lib}_${newVer}_fileList"
       ) &
@@ -108,7 +117,7 @@ function autoadd() {
         rsync -a --delete "${lib}/${newVer}/" "${tempD}/${lib}_${newVer}_x/"
         (
           cd "${tempD}/${lib}_${newVer}_x/"
-          ~/repos/cdnjs/web-minify-helper/minify.sh
+          $BOT_BASE_PATH/web-minify-helper/minify.sh
           find . | sort | command grep -v 'bot_cant_auto_add\|\.map$\|\.ts$\|\.md$' > "${tempD}/${lib}_${newVer}_x_fileList"
         )
         tmpmd5="$(md5sum "${tempD}/${lib}_${newVer}_x_fileList" | cut -d ' ' -f 1)"
@@ -124,7 +133,7 @@ function autoadd() {
             continue
           fi
           (
-            cd "${HOME}/repos/cdnjs/cdnjs/ajax/libs/${lib}/${oldoldVer}"
+            cd "$BOT_BASE_PATH/cdnjs/ajax/libs/${lib}/${oldoldVer}"
             find . | sort | command grep -v '.bot_cant_auto_add\|\.map$\|\.ts$\|\.md$' > "${tempD}/${lib}_${oldoldVer}_fileList"
           )
           oldoldmd5="$(md5sum "${tempD}/${lib}_${oldoldVer}_fileList" | cut -d ' ' -f 1)"
@@ -154,14 +163,14 @@ function autoadd() {
         echo "Found ${lib}/${newVer}/.bot_cant_auto_add, pass ..."
         continue
       fi
-      tempD="/run/shm/cdnjsCheck/$(date --iso-8601)"
+      tempD="$BOT_CDNJS_CHECK_DIR$(date --iso-8601)"
       mkdir -p "${tempD}"
       (
-        cd "${HOME}/repos/cdnjs/cdnjs/ajax/libs/${lib}/${oldVer}"
+        cd "$BOT_BASE_PATH/cdnjs/ajax/libs/${lib}/${oldVer}"
         find . | sort | command grep -v '.bot_cant_auto_add\|\.map$\|\.ts$\|\.md$' > "${tempD}/${lib}_${oldVer}_fileList"
       ) &
       (
-        cd "${HOME}/repos/cdnjs/cdnjs/ajax/libs/${lib}/${newVer}"
+        cd "$BOT_BASE_PATH/cdnjs/ajax/libs/${lib}/${newVer}"
         find . -type f -exec chmod -x {} \;
         find . | sort | command grep -v '.bot_cant_auto_add\|\.map$\|\.ts$\|\.md$' > "${tempD}/${lib}_${newVer}_fileList"
       ) &
@@ -180,7 +189,7 @@ function autoadd() {
         rsync -a --delete "${lib}/${newVer}/" "${tempD}/${lib}_${newVer}_x/"
         (
           cd "${tempD}/${lib}_${newVer}_x/"
-          ~/repos/cdnjs/web-minify-helper/minify.sh
+          $BOT_BASE_PATH/web-minify-helper/minify.sh
           find . | sort | command grep -v '.bot_cant_auto_add\|\.map$\|\.ts$\|\.md$' > "${tempD}/${lib}_${newVer}_x_fileList"
         )
         tmpmd5="$(md5sum "${tempD}/${lib}_${newVer}_x_fileList" | cut -d ' ' -f 1)"
@@ -195,7 +204,7 @@ function autoadd() {
             continue
           fi
           (
-            cd "${HOME}/repos/cdnjs/cdnjs/ajax/libs/${lib}/${oldoldVer}"
+            cd "$BOT_BASE_PATH/cdnjs/ajax/libs/${lib}/${oldoldVer}"
             find . | sort | command grep -v '.bot_cant_auto_add\|\.map$\|\.ts$\|\.md$' > "${tempD}/${lib}_${oldoldVer}_fileList"
           )
           oldoldmd5="$(md5sum "${tempD}/${lib}_${oldoldVer}_fileList" | cut -d ' ' -f 1)"
