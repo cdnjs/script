@@ -47,11 +47,11 @@ function check() {
     mkdir -p "${tempD}"
     (
       cd "${1}/${oldVer}"
-      find . | sort | command grep -v '.bot_cant_auto_add\|\.map$\|\.ts$\|\.md$' > "${tempD}/${1}_${oldVer}_fileList"
+      find . | sort | command grep -v '\.map$\|\.ts$\|\.md$' > "${tempD}/${1}_${oldVer}_fileList"
     ) &
     (
       cd "${1}/${newVer}"
-      find . | sort | command grep -v '.bot_cant_auto_add\|\.map$\|\.ts$\|\.md$' > "${tempD}/${1}_${newVer}_fileList"
+      find . | sort | command grep -v '\.map$\|\.ts$\|\.md$' > "${tempD}/${1}_${newVer}_fileList"
     ) &
     wait
     diff "${tempD}/${1}_${oldVer}_fileList" "${tempD}/${1}_${newVer}_fileList"
@@ -87,20 +87,16 @@ function autoadd() {
     diffCount="$(git diff "${lib}/package.json" | command grep -v '^\-\-\-' | command grep -c '^\- ')"
     if [ "${diffCount}" -eq 1 ] && [ ! -z "${oldVer}" ] && [ ! -z "${newVer}" ]; then
       print-log "found ver ${oldVer} -> ${newVer}"
-      if [[ -f "${lib}/${newVer}/.bot_cant_auto_add" ]]; then
-        echo "Found ${lib}/${newVer}/.bot_cant_auto_add, pass ..."
-        continue
-      fi
       tempD="$BOT_CDNJS_CHECK_DIR$(date --iso-8601)"
       mkdir -p "${tempD}"
       (
         cd "$BOT_BASE_PATH/cdnjs/ajax/libs/${lib}/${oldVer}"
-        find . | sort | command grep -v '.bot_cant_auto_add\|\.map$\|\.ts$\|\.md$' > "${tempD}/${lib}_${oldVer}_fileList"
+        find . | sort | command grep -v '\.map$\|\.ts$\|\.md$' > "${tempD}/${lib}_${oldVer}_fileList"
       ) &
       (
         cd "$BOT_BASE_PATH/cdnjs/ajax/libs/${lib}/${newVer}"
         find . -type f -exec chmod -x {} \;
-        find . | sort | command grep -v '.bot_cant_auto_add\|\.map$\|\.ts$\|\.md$' > "${tempD}/${lib}_${newVer}_fileList"
+        find . | sort | command grep -v '\.map$\|\.ts$\|\.md$' > "${tempD}/${lib}_${newVer}_fileList"
       ) &
       wait
       if [ ! -e "${lib}/.donotoptimizepng" ] && test "$(find "${lib}/${newVer}" -name "*.png")"; then
@@ -118,37 +114,10 @@ function autoadd() {
         (
           cd "${tempD}/${lib}_${newVer}_x/"
           $BOT_BASE_PATH/web-minify-helper/minify.sh
-          find . | sort | command grep -v 'bot_cant_auto_add\|\.map$\|\.ts$\|\.md$' > "${tempD}/${lib}_${newVer}_x_fileList"
+          find . | sort | command grep -v '\.map$\|\.ts$\|\.md$' > "${tempD}/${lib}_${newVer}_x_fileList"
         )
-        tmpmd5="$(md5sum "${tempD}/${lib}_${newVer}_x_fileList" | cut -d ' ' -f 1)"
-        if [ "${oldmd5}" = "${tmpmd5}" ]; then
-          rsync -av "${tempD}/${lib}_${newVer}_x/" "${lib}/${newVer}/"
-          cdnjs-add "${lib}" "${newVer}"
-        else
-          oldoldVer="$(git ls-files -- "./${lib}" | awk -F '/' '/[0-9]/ {print $2}' | uniq | sort -V | grep "^$(echo "${newVer}" | head -c 1)" | tail -n 1)"
-          if [ "$oldoldVer" = "" ]; then
-            print-log "${lib} ${newVer} can not be automatically added"
-            echo -e '\a'
-            touch "${lib}/${newVer}/.bot_cant_auto_add"
-            continue
-          fi
-          (
-            cd "$BOT_BASE_PATH/cdnjs/ajax/libs/${lib}/${oldoldVer}"
-            find . | sort | command grep -v '.bot_cant_auto_add\|\.map$\|\.ts$\|\.md$' > "${tempD}/${lib}_${oldoldVer}_fileList"
-          )
-          oldoldmd5="$(md5sum "${tempD}/${lib}_${oldoldVer}_fileList" | cut -d ' ' -f 1)"
-          filename="$(grep '"filename": "' "${lib}/package.json" | awk -F'"' '{print $4}')"
-          if [ -e "${lib}/${newVer}/${filename}" ] && [ "${oldoldmd5}" = "${newmd5}" ]; then
-            cdnjs-add "${lib}" "${newVer}"
-          elif [ -e "${lib}/${newVer}/${filename}" ] && [ "${oldoldmd5}" = "${tmpmd5}" ]; then
-            rsync -av "${tempD}/${lib}_${newVer}_x/" "${lib}/${newVer}/"
-            cdnjs-add "${lib}" "${newVer}"
-          else
-            print-log "${lib} ${newVer} can not be automatically added"
-            echo -e '\a'
-            touch "${lib}/${newVer}/.bot_cant_auto_add"
-          fi
-        fi
+        rsync -av "${tempD}/${lib}_${newVer}_x/" "${lib}/${newVer}/"
+        cdnjs-add "${lib}" "${newVer}"
       fi
     fi
   done
@@ -159,20 +128,16 @@ function autoadd() {
     oldVer="$(grep '"version": ' "${lib}/package.json" | awk -F'"' '{print $4}')"
     for newVer in $(git status "${lib}" | command grep '\/$' | awk -F '/' '{ print $2 }' | tac); do
       print-log "found ver ${newVer} (origin ${oldVer})"
-      if [[ -f "${lib}/${newVer}/.bot_cant_auto_add" ]]; then
-        echo "Found ${lib}/${newVer}/.bot_cant_auto_add, pass ..."
-        continue
-      fi
       tempD="$BOT_CDNJS_CHECK_DIR$(date --iso-8601)"
       mkdir -p "${tempD}"
       (
         cd "$BOT_BASE_PATH/cdnjs/ajax/libs/${lib}/${oldVer}"
-        find . | sort | command grep -v '.bot_cant_auto_add\|\.map$\|\.ts$\|\.md$' > "${tempD}/${lib}_${oldVer}_fileList"
+        find . | sort | command grep -v '\.map$\|\.ts$\|\.md$' > "${tempD}/${lib}_${oldVer}_fileList"
       ) &
       (
         cd "$BOT_BASE_PATH/cdnjs/ajax/libs/${lib}/${newVer}"
         find . -type f -exec chmod -x {} \;
-        find . | sort | command grep -v '.bot_cant_auto_add\|\.map$\|\.ts$\|\.md$' > "${tempD}/${lib}_${newVer}_fileList"
+        find . | sort | command grep -v '\.map$\|\.ts$\|\.md$' > "${tempD}/${lib}_${newVer}_fileList"
       ) &
       wait
       if [ ! -e "${lib}/.donotoptimizepng" ] && test "$(find "${lib}/${newVer}" -name "*.png")"; then
@@ -190,34 +155,10 @@ function autoadd() {
         (
           cd "${tempD}/${lib}_${newVer}_x/"
           $BOT_BASE_PATH/web-minify-helper/minify.sh
-          find . | sort | command grep -v '.bot_cant_auto_add\|\.map$\|\.ts$\|\.md$' > "${tempD}/${lib}_${newVer}_x_fileList"
+          find . | sort | command grep -v '\.map$\|\.ts$\|\.md$' > "${tempD}/${lib}_${newVer}_x_fileList"
         )
-        tmpmd5="$(md5sum "${tempD}/${lib}_${newVer}_x_fileList" | cut -d ' ' -f 1)"
-        if [ "${oldmd5}" = "${tmpmd5}" ]; then
-          rsync -av "${tempD}/${lib}_${newVer}_x/" "${lib}/${newVer}/"
-          cdnjs-add-no-package-json "${lib}" "${newVer}"
-        else
-          oldoldVer="$(git ls-files -- "./${lib}" | awk -F '/' '/[0-9]/ {print $2}' | uniq | sort -V | grep "^$(echo "${newVer}" | head -c 1)" | tail -n 1)"
-          if [ "$oldoldVer" = "" ]; then
-            print-log "${lib} ${newVer} can not be automatically added"
-            touch "${lib}/${newVer}/.bot_cant_auto_add"
-            continue
-          fi
-          (
-            cd "$BOT_BASE_PATH/cdnjs/ajax/libs/${lib}/${oldoldVer}"
-            find . | sort | command grep -v '.bot_cant_auto_add\|\.map$\|\.ts$\|\.md$' > "${tempD}/${lib}_${oldoldVer}_fileList"
-          )
-          oldoldmd5="$(md5sum "${tempD}/${lib}_${oldoldVer}_fileList" | cut -d ' ' -f 1)"
-          if [ "${oldoldmd5}" = "${newmd5}" ]; then
-            cdnjs-add "${lib}" "${newVer}"
-          elif [ "${oldoldmd5}" = "${tmpmd5}" ]; then
-            rsync -av "${tempD}/${lib}_${newVer}_x/" "${lib}/${newVer}/"
-            cdnjs-add "${lib}" "${newVer}"
-          else
-            print-log "${lib} ${newVer} can not be automatically added"
-            touch "${lib}/${newVer}/.bot_cant_auto_add"
-          fi
-        fi
+        rsync -av "${tempD}/${lib}_${newVer}_x/" "${lib}/${newVer}/"
+        cdnjs-add-no-package-json "${lib}" "${newVer}"
       fi
     done
   done
